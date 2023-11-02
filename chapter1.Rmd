@@ -1,13 +1,18 @@
 
 # About the project
 
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
+Introduction to open data science course 2023.
+
+Link to my GitHub repository https://github.com/julivaris/IODS-project 
+
+# Feelings etc.
+
+Feeling good. I expect to learn to use git version control system and R better in data science framework. I found the course from Sisu. 
+R for Health Data Science seems to be clear and user-friendly introduction to R. My favourite topic is probably the tuning plots, chapter 5. I expect the most difficult topics to relate regression models and tests that require some statistical understanding. Starting with R Markdown from the start is a good idea.
+
 
 ```{r}
-# This is a so-called "R chunk" where you can write R code.
-
 date()
-
 ```
-The text continues here.
+
 
