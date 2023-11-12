@@ -1,13 +1,147 @@
-# Insert chapter 2 title here
+# Week 2
 
-*Describe the work you have done this week and summarize your learning.*
+*This week's exercises were about data wrangling and performing* 
+*and interpreting a simple linear regression*
 
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
 
 ```{r}
 date()
 ```
 
-Here we go again...
+Read in the students2014 data
+
+```{r}
+learning14 <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/learning2014.txt", header = TRUE, sep = ",")
+```
+
+```{r}
+str(learning14)
+```
+The data set consists of 7 variables and 166 observations. Gender is a character variable,
+and the others are integers. -> changing gender to factor variable
+
+```{r}
+learning14$gender <- as.factor(learning14$gender)
+summary(learning14)
+```
+Information on the variables is available from https://www.mv.helsinki.fi/home/kvehkala/JYTmooc/JYTOPKYS2-meta.txt. 
+
+Short description
+
+Age: Age (in years) derived from the date of birth
+
+Gender: Male = 1  Female = 2
+
+Attitude: Global attitude toward statistic
+
+Deep:  Deep approach
+
+Surf: Surface approach
+
+Stra: Strategic approach   
+
+Points: Exam points
+
+It seems that majority of students are female (wondering whether non-binary was an option...), 
+they are aged 17-55, 
+and they have received exam points between 7 and 33 (mean 22.7) from 
+Introduction to Social Statistics course in fall 2014. 
+
+
+```{r}
+library(reshape2)
+#Convert wide to long
+l14.melt <- melt(learning14)  # gender as id
+head(l14.melt)
+```
+# Graphical overview
+
+```{r}
+library(ggplot2)
+ggplot(data = l14.melt, aes(x = value, fill = gender)) + 
+  stat_density(alpha = 0.5, position = "identity") + facet_wrap(~variable, scales = "free")
+```
+
+Plot count histograms as comparison (to see if we have enough data for smoothing distribution plots as done above).
+(Non-stacking and alpha to see through.)
+
+```{r}
+ggplot(data = l14.melt, aes(x = value, fill = gender)) +
+        geom_histogram(aes(y = ..count..), position = "identity", alpha = 0.5) + facet_wrap(~variable, scales = "free")
+```
+
+Some findings based on above graphs:
+
+- the age distribution is skewed towards younger, most students are in their early 20s
+- female students have lower attitude points compared to male students
+- female students have somewhat higher points in strategic approach (stra)
+
+
+### Correlations
+
+```{r}
+#install.packages('corrplot')
+library(corrplot)
+library(RColorBrewer)
+newdata <- learning14
+newdata$gender <- as.numeric(newdata$gender)
+#M <-cor(newdata)
+#corrplot(M, type="upper", order="hclust",
+#         col=brewer.pal(n=8, name="RdYlBu"))
+
+source("http://www.sthda.com/upload/rquery_cormat.r")
+rquery.cormat(newdata)
+```
+The strongest positive correlation is between exam points and attitude. 
+Gender also seems to be correlated with attitude.
+The strongest negative correlation is between deep and surface approaches.
+
+# Linear regression
+
+Let's fit a linear model with age, gender and attitude es explanatory variables and 
+exam points as an outcome
+
+
+```{r}
+model1 <- lm(points~ age + gender + attitude, data = learning14)
+summary(model1)
+```
+## Interpretation
+
+Attitude is positively associated with exam points the estimate being 3.6
+(when attitude increases by one, points increase by 3.6) 
+The association is statistically significant (p-value < 0.001). 
+Age and gender have negative, non-significant association. -> Let's remove them from the model.
+The estimate of attitude decreases a bit (3.5) and remains strongly significant. 
+
+Multiple R-squared of the model with all three explanatory variables is 0.2018 
+which means that about 20% of the variation in exam points can be explained by the three variables.
+
+## Model diagnostics
+
+Testing assumptions of linear model.
+
+### Residuals vs fitted values
+
+```{r}
+plot(model1, 1)
+```
+
+There seems not to be a pattern in the red line, suggesting it is safe to assume 
+linear relationship between the explanatory variables and exam points outcome.
+ 
+### Normality of residuals
+
+```{r}
+plot(model1, 2)
+```
+
+Based on QQ-plot there seems not be any strong violation to the normality assumption as there is no clear pattern. 
+
+### Residuals vs Leverage
+
+```{r}
+plot(model1, 5)
+```
+
+Residuals vs leverage plot shows three outliers, these could be explored further. 
